@@ -9,16 +9,31 @@ const geoUrl = 'https://raw.githubusercontent.com/codeforgermany/click_that_hood
 const StatsCanMapChart = ({ 
   setTooltipContent, tooltipContent, cardData, setCardData, currentData}) => {
 
-  const colorScale = scaleLinear().domain([300, 2200]).range(['#FFF', "#C90303"])
+  const colorScale = scaleLinear().domain([300, 2200]).range(['#c5ff33', '#cc3300'])
 
-  const createCard = (city, price) => {
+  const createCard = (city, rent, mortgage) => {
     let displayCityPrice = cardData;
-    if (cardData.length < 3){
-      displayCityPrice.push(city, price)
+    if (cardData.length < 2){
+      if (mortgage){
+      displayCityPrice.push(city, rent, mortgage)
       setCardData(displayCityPrice)}
+    }
+    else if (cardData.length === 3){
+      displayCityPrice[1] = city;
+      displayCityPrice[2] = rent;
+      displayCityPrice.push(mortgage)
+      setCardData(displayCityPrice)
+    }
+    else if (!mortgage){
+      displayCityPrice[1] = city;
+      displayCityPrice[2] = rent;
+      displayCityPrice[3] = "None"
+      setCardData(displayCityPrice)
+    }
     else{
       displayCityPrice[1] = city;
-      displayCityPrice[2] = price;
+      displayCityPrice[2] = rent;
+      displayCityPrice[3] = mortgage
       setCardData(displayCityPrice)}
     }
  
@@ -29,7 +44,7 @@ const StatsCanMapChart = ({
         border: '1px solid grey',
       }}>
     <ComposableMap projectionConfig={{ rotate: [-10, 0, 0] }}>
-      <ZoomableGroup center={[-100, 60]} zoom={4}>
+      <ZoomableGroup center={[-100, 60]} zoom={4} maxZoom={18}>
       <Geographies geography={geoUrl}>
         {({ geographies }) =>
           geographies.map((geo) => (
@@ -47,7 +62,7 @@ const StatsCanMapChart = ({
           ))
         }
       </Geographies>
-      {currentData ? currentData.map(({ city, lng, lat, price }) => {
+      {currentData ? currentData.map(({ city, lng, lat, rent, mortgage }) => {
         return (
           <Tooltip title={tooltipContent}>
           <Marker 
@@ -57,14 +72,16 @@ const StatsCanMapChart = ({
               setTooltipContent(`${city}`);
             }}
             onClick={() => {
-              createCard(city, price)
+              createCard(city, rent, mortgage)
             }}
             onMouseLeave={() => {
               setTooltipContent("");
             }}>
-            <circle fill={colorScale(price)}
-              r={1}
-              opacity={.6}/>
+            <circle fill={'#000000'}
+              stroke={colorScale(rent)}
+              strokeWidth={0.35}
+              r={0.25}
+              opacity={1}/>
           </Marker>
           </Tooltip>
         );
